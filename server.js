@@ -2,161 +2,73 @@
 require("dotenv").config()
 const express = require("express")
 const connectDB = require("./DBConnecter")
-const mongoose = require("mongoose")
-const personne = require("./Models/personneSchema")
+const user = require("./Models/userSchema")
+const bodyParser = require("body-parser")
+
 
 // create express app
 app = express()
 
+//body Paser middleware
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: true }))
+
 //connect to DataBase
 connectDB()
 
-
-// create a model using save function
-P = new personne({
-    name: "marwen",
-    age: 26,
-    favoriteFood: [
-        "mloukhiya",
-        "kamouneya",
-        "pasta"
-    ]
+// GET: return all users
+app.get("/list", async(req, res) => {
+    const users = await user.find()
+    res.send(users)
 })
 
-P.save().
-then(doc =>
-        console.log("succeded to insert data"))
-    .catch(err => {
-        console.log(err)
-    })
-
-// create many models using create fucntion
-arrayOfPeople = [{
-        name: "ons",
-        age: 25,
-        favoriteFood: [
-            "beaf",
-            "koskos",
-            "pasta"
-        ]
-    },
-    {
-        name: "ghofran",
-        age: 26,
-        favoriteFood: [
-            "indomi",
-            "indomi",
-            "indomi"
-        ]
-    },
-    {
-        name: "mahdi",
-        age: 26,
-        favoriteFood: [
-            "whatever",
-            "whatever",
-            "whatever"
-        ]
+// POST: add a new user to the DB
+app.post("/add", async(req, res, next) => {
+    try {
+        const data = new user({
+            name: "aymen",
+            age: 26,
+            favoriteFood: [
+                "mloukhiya",
+                "kamouneya",
+                "pasta"
+            ]
+        })
+        await data.save()
+        console.log("data inserted")
+        req.body = data
+        res.send(req.body)
+    } catch (err) {
+        res.send(err)
     }
-]
-
-personne.create(arrayOfPeople).
-then(doc =>
-    console.log("succeded to insert many data")).
-catch(err => {
-    console.log(err)
 })
 
-//find all with only name
-personne.find(null, "name")
-    .then(doc => {
-        console.log(doc)
-    })
-    .catch(err => {
-        console.log(err)
-    })
+// update user by id : put method
+app.put("/update/:id", async(req, res) => {
+    try {
+        const { id } = req.params
+        const updatedUser = new user({
+            name: zeineb,
+            age: 28
+        })
+        const updated_user = await user.findByIdAndUpdate(req.params.id, updatedUser)
+        const a = user.findById(id)
+    } catch (err) {
+        res.send(err)
+    }
+})
 
-//find.one
-personne.findOne({ favoriteFood: { $in: ["indomi"] } })
-    .then(doc => {
-        console.log(doc)
-    })
-    .catch(err => {
-        console.log(err)
-    })
+// delete user by id  :delete method
+app.delete("/delete/:id", async(req, res) => {
+    try {
+        const { id } = req.params
+        await user.findByIdAndDelete(id)
+        res.send("user is deleted")
+    } catch (err) {
+        res.send(err)
+    }
+})
 
-//findByID
-personne.findById("6288e39133c5e12ae4858080", )
-    .then(doc => {
-        console.log(doc)
-    })
-    .catch(err => {
-        console.log(err)
-    })
-
-// Find, Edit, then Save
-personne.findById("6288e39133c5e12ae4858082")
-    .then(doc => {
-        doc.favoriteFood.push("yaghort")
-        doc.save()
-            .then(doc => {
-                console.log(doc)
-            })
-            .catch(err => {
-                console.log(err)
-            })
-    })
-    .catch(err => {
-        console.log(err)
-    })
-
-// findOneAndUpdate
-personne.findOneAndUpdate({
-        name: "ons" //search Query
-    }, {
-        age: 20 // replacement values
-    }, {
-        new: true,
-        runValidators: true
-    })
-    .then(doc => {
-        console.log(doc)
-    })
-    .catch(err => {
-        console.log(err)
-    })
-
-
-//findByIdAndRemove
-personne.findByIdAndRemove("6288e39133c5e12ae4858081")
-    .then(doc => {
-        console.log(doc)
-    })
-    .catch(err => {
-        console.log(err)
-    })
-
-//Remove a model
-personne.remove({
-        name: "mahdi"
-    })
-    .then(doc => {
-        console.log(doc)
-    })
-    .catch(err => {
-        console.log(err)
-    })
-
-//chaining query
-personne
-    .find()
-    .sort({ "name": 1 })
-    .limit(2)
-    .select({ age: 0 })
-    .exec()
-    .then(doc => {
-        console.log(doc)
-    })
-    .catch(err => {
-        console.log(err)
-    })
+const port = 3000
+app.listen(port)
+console.log(`listen to port: ${port}`)
